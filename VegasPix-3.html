@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Vegas Pix</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#06060a;color:#e8e6f0;font-family:"Barlow",sans-serif;min-height:100vh;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}button{cursor:pointer;font-family:inherit}input,select,textarea{font-family:inherit}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:#1e1c2e;border-radius:2px}
+@keyframes livepulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(1.4)}}
+@keyframes fadein{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@keyframes toastin{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.cond{font-family:"Barlow Condensed",sans-serif}.mono{font-family:"JetBrains Mono",monospace}
+.page{max-width:1100px;margin:0 auto;padding:36px 16px 100px;animation:fadein .25s ease}
+.card{background:#0d0d15;border:1px solid rgba(255,255,255,0.05);border-radius:12px;transition:border-color .2s}
+.card:hover{border-color:rgba(255,255,255,0.1)}
+.vp-input{background:#0a0a14;border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:10px 14px;font-size:13px;color:#e8e6f0;outline:none;width:100%;transition:border-color .15s;display:block}
+.vp-input:focus{border-color:rgba(212,160,23,0.45)}.vp-input::placeholder{color:#2a2840}
+select.vp-input option{background:#0d0d15}textarea.vp-input{resize:vertical;min-height:90px;line-height:1.6}
+.btn-gold{background:#d4a017;color:#0a0808;font-weight:700;border:none;border-radius:8px;padding:10px 20px;font-size:14px;cursor:pointer;transition:all .15s}
+.btn-gold:hover{background:#e8b520}
+.btn-ghost{background:rgba(255,255,255,0.04);color:#c8c5d8;border:1px solid rgba(255,255,255,0.08);border-radius:8px;padding:10px 18px;font-size:13px;cursor:pointer;transition:all .15s}
+.btn-ghost:hover{background:rgba(255,255,255,0.07)}
+.nav-btn{background:none;border:none;padding:6px 12px;border-radius:6px;font-size:13px;font-weight:500;cursor:pointer;color:#6e6b84;transition:all .15s}
+.nav-btn:hover{color:#e8e6f0}.nav-btn.on{color:#d4a017;background:rgba(212,160,23,0.08)}
+.filter-btn{padding:5px 14px;border-radius:100px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,0.07);background:transparent;color:#4a4760;transition:all .15s}
+.filter-btn.on{background:rgba(212,160,23,0.1);color:#d4a017;border-color:rgba(212,160,23,0.3)}
+.tab-btn{padding:7px 16px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none;background:transparent;color:#6e6b84;transition:all .15s}
+.tab-btn.on{background:#d4a017;color:#0a0808}
+.modal-bg{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,0.8);backdrop-filter:blur(8px);padding:16px}
+.modal-box{background:#0d0d15;border:1px solid rgba(255,255,255,0.08);border-radius:16px;padding:32px;width:100%;max-width:400px;box-shadow:0 24px 80px rgba(0,0,0,.8)}
+#toast{position:fixed;top:16px;right:16px;z-index:9999;padding:10px 18px;border-radius:9px;font-size:13px;font-weight:600;box-shadow:0 8px 32px rgba(0,0,0,.6);animation:toastin .25s ease;display:none}
+#loading-overlay{position:fixed;inset:0;z-index:9998;background:rgba(6,6,10,0.92);display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px}
+.spinner{width:36px;height:36px;border:3px solid rgba(212,160,23,0.2);border-top-color:#d4a017;border-radius:50%;animation:spin .8s linear infinite}
+#fab{position:fixed;bottom:24px;right:20px;display:flex;flex-direction:column;gap:10px;z-index:40}
+.fab-a{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:19px}
+.err-box{background:rgba(220,38,38,0.1);border:1px solid rgba(220,38,38,0.3);border-radius:8px;padding:9px 14px;font-size:12px;color:#f87171;margin-bottom:16px}
+.form-lbl{font-size:11px;color:#4a4760;font-weight:700;text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px}
+.form-err{font-size:11px;color:#f87171;display:block;margin-top:4px}
+.data-cell{background:rgba(255,255,255,0.025);border-radius:7px;padding:7px 10px}
+.grid-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid-form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.col2{grid-column:1/-1}
+.flex{display:flex}.flex-col{display:flex;flex-direction:column}
+.wrap{flex-wrap:wrap}.g8{gap:8px}.g10{gap:10px}.g12{gap:12px}.g20{gap:20px}.g24{gap:24px}.g40{gap:40px}
+.ai{align-items:center}.jb{justify-content:space-between}
+header{border-bottom:1px solid rgba(255,255,255,0.05);background:rgba(6,6,10,0.94);backdrop-filter:blur(12px);position:sticky;top:0;z-index:50}
+.nav-inner{max-width:1100px;margin:0 auto;padding:0 16px;height:60px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+footer{border-top:1px solid rgba(255,255,255,0.04);padding:40px 16px 24px;margin-top:40px}
+</style>
+</head>
+<body>
+<div id="loading-overlay"><div class="spinner"></div><p style="color:#6e6b84;font-size:13px">Cargando Vegas Pix...</p></div>
+<div id="toast"></div>
+<div id="overlay"></div>
+<header><div class="nav-inner">
+  <button onclick="go('home')" style="background:none;border:none;cursor:pointer;display:flex;align-items:baseline;gap:4px">
+    <span class="cond" style="font-size:22px;font-weight:900;color:#d4a017;letter-spacing:.06em">VEGAS</span>
+    <span class="cond" style="font-size:22px;font-weight:900;color:#e8e6f0;letter-spacing:.06em">PIX</span>
+  </button>
+  <nav id="nav-links" class="flex wrap g8"></nav>
+  <div id="nav-auth" class="flex ai g8"></div>
+</div></header>
+<div id="main"></div>
+<footer><div style="max-width:1100px;margin:0 auto">
+  <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:28px;margin-bottom:32px">
+    <div>
+      <div class="cond" style="font-size:20px;font-weight:900;margin-bottom:10px"><span style="color:#d4a017">VEGAS</span> <span style="color:#e8e6f0">PIX</span></div>
+      <p style="font-size:12px;color:#3a3860;line-height:1.6">Análisis deportivo profesional. Picks con criterio, datos y transparencia total.</p>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:#4a4760;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Plataforma</div>
+      <div class="flex-col g8">
+        <button onclick="go('picks')" style="background:none;border:none;color:#3a3860;font-size:12px;cursor:pointer;text-align:left">Picks</button>
+        <button onclick="go('history')" style="background:none;border:none;color:#3a3860;font-size:12px;cursor:pointer;text-align:left">Historial</button>
+        <button onclick="go('deposits')" style="background:none;border:none;color:#3a3860;font-size:12px;cursor:pointer;text-align:left">Depósitos</button>
+        <button onclick="go('apostar')" style="background:none;border:none;color:#3a3860;font-size:12px;cursor:pointer;text-align:left">Apostar</button>
+        <button onclick="go('about')" style="background:none;border:none;color:#3a3860;font-size:12px;cursor:pointer;text-align:left">Nosotros</button>
+      </div>
+    </div>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:#4a4760;text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px">Contacto</div>
+      <div class="flex-col g8">
+        <a href="https://t.me/VegasPix" target="_blank" style="color:#3a3860;font-size:12px">Telegram</a>
+        <a href="https://wa.me/521234567890" target="_blank" style="color:#3a3860;font-size:12px">WhatsApp</a>
+      </div>
+    </div>
+  </div>
+  <div style="border-top:1px solid rgba(255,255,255,0.04);padding-top:20px;display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px">
+    <span style="font-size:11px;color:#2a2840">© 2025 Vegas Pix. Todos los derechos reservados.</span>
+    <span style="font-size:11px;color:#2a2840">+18 · Juega responsablemente</span>
+  </div>
+</div></footer>
+<div id="fab">
+  <a href="https://t.me/VegasPix" target="_blank" class="fab-a" style="background:#229ED9;box-shadow:0 4px 20px #229ED955">✈</a>
+  <a href="https://wa.me/521234567890" target="_blank" class="fab-a" style="background:#25D366;box-shadow:0 4px 20px #25D36655">💬</a>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// ── SUPABASE ──────────────────────────────────────────────────────────────────
+const { createClient } = window.supabase;
+const sb = createClient(
+  "https://sqapqgneiknczwpwvtrq.supabase.co",
+  "sb_publishable_L5LEMmtW6ql9NmIvccF9zQ_dynHWIaY"
+);
+
+// ── CONSTANTS ─────────────────────────────────────────────────────────────────
+const ADMIN_PWD = "VegasPix2025!";
+const LEAGUES = {"Fútbol":["Liga MX","Liga de Expansión MX","Liga MX Femenil","Premier League","La Liga","Bundesliga","Serie A","Ligue 1","UEFA Champions League","UEFA Europa League","MLS","Liga BetPlay Dimayor","J1 League","Copa MX","Otra"],"Básquetbol":["NBA","G League","NCAA Basketball","EuroLeague","WNBA","Otra"],"Béisbol":["MLB","Liga Mexicana de Béisbol","Liga Mexicana del Pacífico","NPB (Japón)","KBO","Otra"],"Tenis":["ATP Tour","WTA Tour","Australian Open","Roland Garros","Wimbledon","US Open","Copa Davis","ATP 500","Otra"]};
+const BOOKS = ["Bet365","DraftKings","FanDuel","BetMGM","Caesars Sportsbook","Betway","1xBet","Codere","Caliente","Betcris","Sportingbet","PointsBet","William Hill","Pinnacle","Otra"];
+const ICON = {"Fútbol":"⚽","Básquetbol":"🏀","Béisbol":"⚾","Tenis":"🎾"};
+const SM = {
+  upcoming:{label:"Previo",bg:"rgba(56,189,248,0.1)",c:"#38bdf8",bc:"rgba(56,189,248,0.25)"},
+  live:{label:"En Progreso",bg:"rgba(74,222,128,0.1)",c:"#4ade80",bc:"rgba(74,222,128,0.25)"},
+  pending_result:{label:"Esperando Resultado",bg:"rgba(212,160,23,0.1)",c:"#d4a017",bc:"rgba(212,160,23,0.3)"},
+  won:{label:"✓ Ganado",bg:"rgba(74,222,128,0.1)",c:"#4ade80",bc:"rgba(74,222,128,0.25)"},
+  lost:{label:"✕ Perdido",bg:"rgba(248,113,113,0.1)",c:"#f87171",bc:"rgba(248,113,113,0.25)"},
+  void:{label:"Anulado",bg:"rgba(148,148,170,0.1)",c:"#9494aa",bc:"rgba(148,148,170,0.2)"},
+  push:{label:"Push",bg:"rgba(99,179,237,0.1)",c:"#63b3ed",bc:"rgba(99,179,237,0.25)"}
+};
+
+// ── STATE ─────────────────────────────────────────────────────────────────────
+let S = {
+  page:"home", authUser:null, profile:null,
+  picks:[], users:[], isAdmin:false,
+  atab:"picks", pf:"Todos", hf:{sport:"Todos",res:"all"},
+  selUser:null, editing:null, userQ:""
+};
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+async function sha(s){const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(s+"__VP__"));return[...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join("");}
+function gst(p){if(["won","lost","void","push"].includes(p.status))return p.status;const now=Date.now(),mt=new Date(p.date+"T"+p.time).getTime();if(mt>now)return"upcoming";if(mt+10800000>now)return"live";return"pending_result";}
+function fmtO(n){return n>=0?"+"+n:""+n;}
+function fmtD(s){try{return new Date(s+"T12:00:00").toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"});}catch{return s;}}
+function esc(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+const me = () => S.profile;
+
+// ── LOADING ───────────────────────────────────────────────────────────────────
+function setLoad(v){const el=document.getElementById("loading-overlay");if(el)el.style.display=v?"flex":"none";}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────────
+let TT;
+function toast(msg,type="ok"){const el=document.getElementById("toast");el.textContent=msg;el.style.display="block";el.style.background=type==="ok"?"#d4a017":type==="err"?"#dc2626":"#1a1828";el.style.color=type==="ok"?"#0a0808":"#fff";el.style.border="1px solid "+(type==="ok"?"#e8b520":type==="err"?"#ef4444":"#2e2c3d");if(TT)clearTimeout(TT);TT=setTimeout(()=>el.style.display="none",3800);}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+async function loadPicks(){
+  const{data,error}=await sb.from("picks").select("*").order("created_at",{ascending:false});
+  if(!error&&data)S.picks=data;
+}
+
+async function loadProfile(uid){
+  const{data}=await sb.from("profiles").select("*, transactions(*)").eq("id",uid).single();
+  if(data){data.txs=(data.transactions||[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at));S.profile=data;}
+}
+
+async function loadUsers(){
+  const{data}=await sb.from("profiles").select("*, transactions(*)").order("created_at",{ascending:false});
+  if(data){S.users=data.map(u=>({...u,txs:(u.transactions||[]).sort((a,b)=>new Date(b.created_at)-new Date(a.created_at))}));}
+}
+
+// ── AUTH ──────────────────────────────────────────────────────────────────────
+async function doRegister(username,email,pw){
+  if(!username||!email||!pw)return"Completa todos los campos";
+  if(pw.length<8)return"Contraseña mínimo 8 caracteres";
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))return"Correo inválido";
+  const{data:ex}=await sb.from("profiles").select("id").eq("username",username).maybeSingle();
+  if(ex)return"Nombre de usuario no disponible";
+  const{error}=await sb.auth.signUp({email,password:pw,options:{data:{username}}});
+  if(error){if(error.message.includes("already"))return"Correo ya registrado";return error.message;}
+  return null;
+}
+
+async function doLogin(email,pw){
+  const{error}=await sb.auth.signInWithPassword({email,password:pw});
+  if(error)return"Correo o contraseña incorrectos";
+  return null;
+}
+
+async function doAdminAuth(pw){
+  const h=await sha(pw),ah=await sha(ADMIN_PWD);
+  if(h!==ah)return"Contraseña incorrecta";
+  S.isAdmin=true;closeModal();
+  setLoad(true);await loadUsers();setLoad(false);
+  go("admin");toast("Panel admin activo");
+  return null;
+}
+
+function logout(){sb.auth.signOut();}
+
+// ── PICKS CRUD ────────────────────────────────────────────────────────────────
+async function addPick(data){
+  const{data:pick,error}=await sb.from("picks").insert([{...data,status:"upcoming"}]).select().single();
+  if(error){toast("Error al publicar","err");return;}
+  S.picks.unshift(pick);S.atab="picks";S.editing=null;toast("Pick publicado");renderAll();
+}
+
+async function updPick(id,data){
+  const{error}=await sb.from("picks").update({...data,updated_at:new Date().toISOString()}).eq("id",id);
+  if(error){toast("Error al actualizar","err");return;}
+  const i=S.picks.findIndex(p=>p.id===id);
+  if(i!==-1)S.picks[i]={...S.picks[i],...data,updated_at:new Date().toISOString()};
+  toast("Pick actualizado");renderAll();
+}
+
+async function doDelPick(id){
+  if(!confirm("¿Eliminar este pick?"))return;
+  const{error}=await sb.from("picks").delete().eq("id",id);
+  if(error){toast("Error al eliminar","err");return;}
+  S.picks=S.picks.filter(p=>p.id!==id);toast("Pick eliminado","info");renderAll();
+}
+
+async function setRes(id,status){await updPick(id,{status});}
+
+async function submitForm(){
+  const match=document.getElementById("fm")?.value?.trim();
+  const sel=document.getElementById("fsel")?.value?.trim();
+  const odds=document.getElementById("fo")?.value?.trim();
+  const date=document.getElementById("fd")?.value;
+  const time=document.getElementById("ft")?.value;
+  let ok=true;
+  const se=(id,msg)=>{const el=document.getElementById(id);if(el)el.textContent=msg;if(msg)ok=false;};
+  se("em",match?"":"Requerido");se("esel",sel?"":"Requerido");
+  se("eo",(!odds||isNaN(parseInt(odds)))?"Cuota americana válida (ej: -110 o +150)":"");
+  se("ed",date?"":"Requerido");se("et",time?"":"Requerido");
+  if(!ok)return;
+  const data={sport:document.getElementById("fs")?.value,league:document.getElementById("fl")?.value,match,selection:sel,odds:parseInt(odds),bookmaker:document.getElementById("fb")?.value,date,time,description:document.getElementById("fdesc")?.value?.trim()||"",confidence:parseInt(document.getElementById("fc")?.value||3)};
+  const btn=document.getElementById("submit-btn");
+  if(btn){btn.disabled=true;btn.textContent="Guardando...";}
+  if(S.editing){await updPick(S.editing.id,data);S.editing=null;}
+  else{await addPick(data);}
+  if(btn){btn.disabled=false;btn.textContent=S.editing?"Actualizar Pick":"Publicar Pick";}
+  S.atab="picks";renderAll();
+}
+
+async function applyBal(userId){
+  const raw=document.getElementById("aa")?.value?.trim().replace(/,/g,".");
+  const amt=parseFloat(raw);
+  const note=document.getElementById("an")?.value?.trim();
+  if(isNaN(amt)||amt===0){toast("Ingresa un monto válido","err");return;}
+  if(!note){toast("Escribe el concepto","err");return;}
+  const user=S.users.find(u=>u.id===userId);if(!user)return;
+  const newBal=Math.max(0,user.balance+amt);
+  const{error:e1}=await sb.from("profiles").update({balance:newBal}).eq("id",userId);
+  if(e1){toast("Error al actualizar saldo","err");return;}
+  const{data:tx,error:e2}=await sb.from("transactions").insert([{user_id:userId,amount:amt,note,balance_after:newBal}]).select().single();
+  if(e2){toast("Error al registrar transacción","err");return;}
+  user.balance=newBal;user.txs=[tx,...(user.txs||[])];
+  // Refresh own profile if it is the logged user
+  if(S.profile&&S.profile.id===userId)S.profile.balance=newBal;
+  S.selUser=null;toast(`Saldo ${amt>=0?"acreditado":"descontado"}: $${Math.abs(amt).toFixed(2)} MXN`);renderAll();
+}
+
+// ── NAVIGATION ────────────────────────────────────────────────────────────────
+function go(page){S.page=page;renderAll();}
+
+function renderNav(){
+  const pages=[["home","Inicio"],["picks","Picks"],["history","Historial"],["deposits","Depósitos"],["apostar","Apostar"],["about","Nosotros"]];
+  const m=me();
+  let links=pages.map(([p,l])=>`<button onclick="go('${p}')" class="nav-btn${S.page===p?" on":""}">${l}</button>`).join("");
+  if(m)links+=`<button onclick="go('profile')" class="nav-btn${S.page==="profile"?" on":""}">Mi Cuenta</button>`;
+  if(S.isAdmin)links+=`<button onclick="go('admin')" style="background:none;border:none;color:#f87171;padding:6px 12px;border-radius:6px;font-size:13px;font-weight:600;cursor:pointer">⚙ Admin</button>`;
+  document.getElementById("nav-links").innerHTML=links;
+  let auth="";
+  if(m){auth=`<span style="font-size:12px;color:#4a4760">${esc(m.username)}</span><button onclick="logout()" class="btn-ghost" style="padding:6px 14px;font-size:12px">Salir</button>`;}
+  else{auth=`<button onclick="showModal('login')" style="background:none;border:none;color:#9390a8;font-size:13px;font-weight:500;cursor:pointer">Iniciar Sesión</button><button onclick="showModal('register')" class="btn-gold" style="padding:7px 16px;font-size:13px">Registrarse</button>`;}
+  if(!S.isAdmin)auth+=`<button onclick="showModal('admin_pw')" style="background:none;border:none;color:#2e2c3d;font-size:16px;cursor:pointer;padding:4px" title="Admin">⚙</button>`;
+  document.getElementById("nav-auth").innerHTML=auth;
+}
+
+function renderMain(){
+  const p=S.page;let html="";
+  if(p==="home")html=pgHome();
+  else if(p==="picks")html=pgPicks();
+  else if(p==="history")html=pgHistory();
+  else if(p==="deposits")html=pgDeposits();
+  else if(p==="about")html=pgAbout();
+  else if(p==="profile")html=pgProfile();
+  else if(p==="apostar")html=pgApostar();
+  else if(p==="admin")html=S.isAdmin?pgAdmin():pgUnauth();
+  document.getElementById("main").innerHTML=`<div class="page">${html}</div>`;
+}
+
+function renderAll(){renderNav();renderMain();}
+
+function stats(){
+  const fin=S.picks.filter(p=>["won","lost"].includes(p.status));
+  const wins=S.picks.filter(p=>p.status==="won").length;
+  const wr=fin.length?Math.round(wins/fin.length*100):0;
+  const s=[...fin].sort((a,b)=>new Date(b.updated_at||b.created_at)-new Date(a.updated_at||a.created_at));
+  let n=0,t=null;if(s.length){t=s[0].status;for(const p of s){if(p.status===t)n++;else break;}}
+  return{total:S.picks.length,wins,wr,streak:n,stype:t};
+}
+
+// ── PICK CARD ─────────────────────────────────────────────────────────────────
+function pickCard(pick,admin=false){
+  const st=gst(pick);const m=SM[st]||SM.upcoming;const oc=pick.odds>=0?"#4ade80":"#d4a017";const live=st==="live";
+  return`<div class="card" style="padding:18px 20px">
+    <div class="flex wrap ai jb g12" style="margin-bottom:14px">
+      <div class="flex ai g10" style="min-width:0;flex:1">
+        <span style="font-size:24px;flex-shrink:0">${ICON[pick.sport]||"🎯"}</span>
+        <div style="min-width:0">
+          <div style="font-size:11px;color:#4a4760;font-weight:600;letter-spacing:.05em;text-transform:uppercase;margin-bottom:3px">${esc(pick.league)} · ${esc(pick.sport)}</div>
+          <div style="font-size:16px;font-weight:700;color:#e8e6f0;line-height:1.2">${esc(pick.match)}</div>
+          ${pick.selection?`<div style="font-size:12px;color:#9390a8;margin-top:3px">→ ${esc(pick.selection)}</div>`:""}
+        </div>
+      </div>
+      <div class="flex ai g10" style="flex-shrink:0">
+        <span style="background:${m.bg};color:${m.c};border:1px solid ${m.bc};padding:3px 10px;border-radius:100px;font-size:11px;font-weight:700;letter-spacing:.04em;display:inline-flex;align-items:center;gap:6px">
+          ${live?`<span style="width:6px;height:6px;border-radius:50%;background:#4ade80;display:inline-block;animation:livepulse 1.5s infinite"></span>`:""}${m.label}
+        </span>
+        <span class="mono" style="font-size:22px;font-weight:700;color:${oc}">${fmtO(pick.odds)}</span>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-bottom:${pick.description?"14px":"0"}">
+      ${[["Casa de Apuestas",pick.bookmaker],["Fecha",fmtD(pick.date)],["Hora",pick.time||"—"],["Confianza","★".repeat(pick.confidence||3)+"☆".repeat(5-(pick.confidence||3))]].map(([l,v])=>`
+        <div class="data-cell">
+          <div style="font-size:10px;color:#3a3860;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:3px">${l}</div>
+          <div style="font-size:12px;color:${l==="Confianza"?"#d4a017":"#b8b5cc"};font-weight:500">${esc(String(v))}</div>
+        </div>`).join("")}
+    </div>
+    ${pick.description?`<p style="font-size:12px;color:#5a5770;line-height:1.6;border-top:1px solid rgba(255,255,255,0.04);padding-top:12px">${esc(pick.description)}</p>`:""}
+    ${admin?`<div class="flex wrap g8 ai" style="margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.04)">
+      <span style="font-size:11px;color:#3a3860;margin-right:4px">Resultado:</span>
+      ${[["won","✓ Ganado","#4ade80"],["lost","✕ Perdido","#f87171"],["void","Anulado","#9494aa"],["push","Push","#63b3ed"]].map(([s,l,c])=>`
+        <button onclick="setRes('${pick.id}','${s}')" style="padding:4px 12px;border-radius:100px;font-size:11px;font-weight:700;border:1px solid ${pick.status===s?c:"rgba(255,255,255,0.1)"};background:${pick.status===s?c+"22":"transparent"};color:${pick.status===s?c:"#5a5770"};cursor:pointer">${l}</button>`).join("")}
+      <button onclick="editPick('${pick.id}')" style="padding:4px 12px;border-radius:100px;font-size:11px;font-weight:600;border:1px solid rgba(212,160,23,0.3);background:transparent;color:#d4a017;cursor:pointer">✎ Editar</button>
+      <button onclick="doDelPick('${pick.id}')" style="margin-left:auto;padding:4px 12px;border-radius:100px;font-size:11px;font-weight:600;border:1px solid rgba(220,38,38,0.3);background:transparent;color:#f87171;cursor:pointer">Eliminar</button>
+    </div>`:""}
+  </div>`;
+}
+
+// ── HOME ──────────────────────────────────────────────────────────────────────
+function pgHome(){
+  const{total,wins,wr,streak,stype}=stats();const m=me();
+  const active=S.picks.filter(p=>!["won","lost","void","push"].includes(p.status));
+  const sl=streak>0?`${streak} ${stype==="won"?"✓":"✕"}`:"—";
+  const ss=streak>0?(stype==="won"?"consecutivos ganados":"consecutivos perdidos"):"sin datos";
+  return`<div class="flex-col g40">
+    <section style="text-align:center;padding:48px 0 24px;position:relative">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(212,160,23,0.07),transparent 70%);pointer-events:none"></div>
+      <div style="position:relative">
+        <div style="display:inline-block;padding:4px 16px;border-radius:100px;background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);font-size:11px;font-weight:700;color:#d4a017;letter-spacing:.08em;margin-bottom:20px">🔒 ANÁLISIS PROFESIONAL · CUOTAS AMERICANAS</div>
+        <h1 class="cond" style="font-size:clamp(52px,9vw,88px);font-weight:900;line-height:1;margin-bottom:12px">
+          <span style="color:#d4a017;text-shadow:0 0 40px rgba(212,160,23,0.3)">VEGAS</span> <span style="color:#e8e6f0">PIX</span>
+        </h1>
+        <p style="font-size:16px;color:#6e6b84;max-width:500px;margin:0 auto 28px;line-height:1.6">Selecciones deportivas con análisis profundo. Fútbol, Básquetbol, Béisbol y Tenis.</p>
+        ${!m?`<div class="flex g12" style="justify-content:center;flex-wrap:wrap">
+          <button onclick="showModal('register')" class="btn-gold" style="padding:12px 28px;font-size:15px;border-radius:9px">Crear Cuenta Gratis</button>
+          <button onclick="go('picks')" class="btn-ghost" style="padding:12px 28px;font-size:15px;border-radius:9px">Ver Picks Activos</button>
+        </div>`:""}
+      </div>
+    </section>
+    <section class="grid-auto">
+      ${[["Picks Totales",total,"publicados"],["Ganados",wins,"picks acertados"],["Efectividad",wr+"%","tasa de acierto"],["Racha Actual",sl,ss]].map(([l,v,s])=>`
+        <div class="card" style="padding:20px 22px">
+          <div class="mono" style="font-size:32px;font-weight:700;color:#e8e6f0;margin-bottom:4px">${v}</div>
+          <div style="font-size:11px;font-weight:700;color:#d4a017;text-transform:uppercase;letter-spacing:.06em;margin-bottom:2px">${l}</div>
+          <div style="font-size:11px;color:#3a3860">${s}</div>
+        </div>`).join("")}
+    </section>
+    ${active.length>0?`
+      <section>
+        <div class="flex ai jb" style="margin-bottom:16px">
+          <span class="cond" style="font-size:20px;font-weight:800;color:#e8e6f0;letter-spacing:.02em">PICKS ACTIVOS</span>
+          <button onclick="go('picks')" style="background:none;border:none;color:#d4a017;font-size:13px;font-weight:600;cursor:pointer">Ver todos →</button>
+        </div>
+        <div class="flex-col g10">${active.slice(0,3).map(p=>pickCard(p)).join("")}</div>
+      </section>`:
+      `<div class="card" style="padding:40px 24px;text-align:center">
+        <p style="color:#3a3860;font-size:14px">No hay picks activos en este momento</p>
+        <p style="color:#2a2840;font-size:12px;margin-top:6px">Los picks se publican antes de cada partido</p>
+      </div>`}
+    <section style="background:linear-gradient(135deg,#0d0d15,#0f0d1e);border:1px solid rgba(255,255,255,0.05);border-radius:16px;padding:28px 32px;display:flex;flex-wrap:wrap;align-items:center;gap:20px">
+      <div style="font-size:44px">✈️</div>
+      <div style="flex:1;min-width:200px">
+        <div class="cond" style="font-size:20px;font-weight:800;color:#e8e6f0;margin-bottom:6px;letter-spacing:.02em">CANAL OFICIAL DE TELEGRAM</div>
+        <p style="font-size:13px;color:#6e6b84;line-height:1.5">Recibe picks en tiempo real, alertas de resultados y análisis exclusivos.</p>
+      </div>
+      <a href="https://t.me/VegasPix" target="_blank" style="padding:12px 24px;border-radius:9px;background:#229ED9;color:#fff;font-weight:700;font-size:14px;white-space:nowrap">Unirse al Canal</a>
+    </section>
+  </div>`;
+}
+
+// ── PICKS ─────────────────────────────────────────────────────────────────────
+function pgPicks(){
+  const active=S.picks.filter(p=>!["won","lost","void","push"].includes(p.status));
+  const filt=active.filter(p=>S.pf==="Todos"||p.sport===S.pf);
+  return`<div class="flex-col g24">
+    <div class="flex wrap g8 ai">
+      <span class="cond" style="font-size:24px;font-weight:800;color:#e8e6f0;margin-right:8px">PICKS ACTIVOS</span>
+      ${["Todos","Fútbol","Básquetbol","Béisbol","Tenis"].map(s=>`<button onclick="setPF('${s}')" class="filter-btn${S.pf===s?" on":""}">${s}</button>`).join("")}
+    </div>
+    ${filt.length===0?`<div style="text-align:center;padding:80px 0;color:#2e2c3d"><div style="font-size:40px;margin-bottom:12px">🎯</div><p style="font-size:15px">No hay picks activos${S.pf!=="Todos"?" de "+S.pf:""}</p></div>`:
+    `<div class="flex-col g10">${filt.map(p=>pickCard(p)).join("")}</div>`}
+  </div>`;
+}
+
+// ── HISTORY ───────────────────────────────────────────────────────────────────
+function pgHistory(){
+  const{sport,res}=S.hf;
+  const hist=S.picks.filter(p=>["won","lost","void","push"].includes(p.status));
+  const filt=hist.filter(p=>(sport==="Todos"||p.sport===sport)&&(res==="all"||p.status===res));
+  const w=filt.filter(p=>p.status==="won").length,l=filt.filter(p=>p.status==="lost").length;
+  const wr=(w+l)>0?Math.round(w/(w+l)*100):0;
+  return`<div class="flex-col g24">
+    <span class="cond" style="font-size:24px;font-weight:800;color:#e8e6f0">HISTORIAL DE PICKS</span>
+    <div class="grid-3">
+      ${[["Ganados",w,"#4ade80"],["Perdidos",l,"#f87171"],["Efectividad",wr+"%","#d4a017"]].map(([label,val,color])=>`
+        <div class="card" style="padding:16px;text-align:center">
+          <div class="mono" style="font-size:26px;font-weight:700;color:${color}">${val}</div>
+          <div style="font-size:11px;color:#4a4760;margin-top:4px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">${label}</div>
+        </div>`).join("")}
+    </div>
+    <div class="flex wrap g8">
+      ${["Todos","Fútbol","Básquetbol","Béisbol","Tenis"].map(s=>`<button onclick="setHS('${s}')" class="filter-btn${sport===s?" on":""}">${s}</button>`).join("")}
+      <div style="width:1px;background:rgba(255,255,255,0.07);margin:0 4px"></div>
+      ${[["all","Todos"],["won","Ganados"],["lost","Perdidos"],["void","Anulados"],["push","Push"]].map(([v,l2])=>`<button onclick="setHR('${v}')" class="filter-btn${res===v?" on":""}">${l2}</button>`).join("")}
+    </div>
+    ${filt.length===0?`<div style="text-align:center;padding:60px 0;color:#2e2c3d">Sin resultados en el historial</div>`:
+    `<div class="flex-col g10">${filt.map(p=>pickCard(p)).join("")}</div>`}
+  </div>`;
+}
+
+// ── DEPOSITS ──────────────────────────────────────────────────────────────────
+function pgDeposits(){
+  const m=me();
+  return`<div style="max-width:680px;display:flex;flex-direction:column;gap:24px">
+    <div>
+      <span class="cond" style="font-size:24px;font-weight:800;color:#e8e6f0;display:block;margin-bottom:6px">DEPÓSITOS</span>
+      <p style="font-size:13px;color:#4a4760">Añade fondos a tu cuenta para participar en el sistema de picks.</p>
+    </div>
+    ${m?`<div class="card" style="border:1px solid rgba(212,160,23,0.15);padding:20px 24px;display:flex;align-items:center;justify-content:space-between">
+      <div>
+        <div style="font-size:11px;color:#4a4760;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px">Tu saldo disponible</div>
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span class="mono" style="font-size:36px;font-weight:700;color:#e8e6f0">$${m.balance.toFixed(2)}</span>
+          <span style="font-size:13px;color:#4a4760">MXN</span>
+        </div>
+      </div><span style="font-size:36px">💰</span>
+    </div>`:
+    `<div class="card" style="padding:24px;text-align:center">
+      <p style="color:#6e6b84;font-size:14px;margin-bottom:16px">Inicia sesión para ver tu saldo</p>
+      <button onclick="showModal('login')" class="btn-gold">Iniciar Sesión</button>
+    </div>`}
+    <div class="card" style="padding:24px 28px">
+      <div class="cond" style="font-size:17px;font-weight:700;color:#e8e6f0;margin-bottom:20px">¿CÓMO DEPOSITAR?</div>
+      ${[{n:1,t:"Elige tu método",d:"PayPal (internacional) o transferencia SPEI (México)"},{n:2,t:"Realiza el envío",d:`Incluye tu usuario "${m?.username||"tu_usuario"}" o tu ID como referencia`},{n:3,t:"Envía el comprobante",d:"Manda el comprobante por WhatsApp o Telegram con tu usuario"},{n:4,t:"Saldo acreditado",d:"En menos de 2 horas hábiles verás el saldo reflejado"}].map(s=>`
+        <div style="display:flex;gap:16px;align-items:flex-start;margin-bottom:16px">
+          <div style="width:32px;height:32px;border-radius:50%;background:#d4a017;color:#0a0808;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;flex-shrink:0">${s.n}</div>
+          <div><div style="font-size:14px;font-weight:600;color:#e8e6f0;margin-bottom:3px">${s.t}</div><div style="font-size:12px;color:#5a5770;line-height:1.5">${s.d}</div></div>
+        </div>`).join("")}
+    </div>
+    <div class="grid-2">
+      ${[{i:"🅿️",t:"PayPal",s:"Internacional · Rápido",d:"Envía con tu usuario como nota.",h:"https://paypal.me/VegasPix",l:"PayPal.me/VegasPix",bg:"#003087"},{i:"🏦",t:"SPEI",s:"México · 1-2 hrs hábiles",d:"Solicita datos bancarios por WhatsApp.",h:"https://wa.me/521234567890?text=Quiero+depositar",l:"Solicitar datos",bg:"#25D366"}].map(m2=>`
+        <div class="card" style="padding:20px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <span style="font-size:28px">${m2.i}</span>
+            <div><div style="font-weight:700;color:#e8e6f0;font-size:15px">${m2.t}</div><div style="font-size:11px;color:#4a4760">${m2.s}</div></div>
+          </div>
+          <p style="font-size:12px;color:#4a4760;margin-bottom:16px;line-height:1.5">${m2.d}</p>
+          <a href="${m2.h}" target="_blank" style="display:block;text-align:center;padding:10px;border-radius:8px;background:${m2.bg};color:#fff;font-weight:700;font-size:13px">${m2.l}</a>
+        </div>`).join("")}
+    </div>
+    <p style="font-size:11px;color:#2e2c3d;text-align:center">Depósito mínimo: $200 MXN · Sin comisión interna · Retiros disponibles vía SPEI</p>
+  </div>`;
+}
+
+// ── PROFILE ───────────────────────────────────────────────────────────────────
+function pgProfile(){
+  const m=me();
+  if(!m)return`<p style="color:#4a4760;padding:40px">Inicia sesión para ver tu perfil.</p>`;
+  return`<div style="max-width:600px;display:flex;flex-direction:column;gap:20px">
+    <span class="cond" style="font-size:24px;font-weight:800;color:#e8e6f0">MI CUENTA</span>
+    <div class="card" style="padding:24px">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+        <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,#d4a017,#a07010);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:900;color:#0a0808;flex-shrink:0">${esc(m.username[0].toUpperCase())}</div>
+        <div>
+          <div style="font-size:18px;font-weight:700;color:#e8e6f0">${esc(m.username)}</div>
+          <div style="font-size:13px;color:#4a4760">${esc(m.email)}</div>
+          <div class="mono" style="font-size:11px;color:#2e2c3d;margin-top:2px">${esc(m.id)}</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+        <div style="background:rgba(255,255,255,0.025);border-radius:8px;padding:10px 14px">
+          <div style="font-size:10px;color:#3a3860;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">ID de Usuario</div>
+          <div class="mono" style="font-size:11px;color:#d4a017;word-break:break-all">${esc(m.id)}</div>
+        </div>
+        <div style="background:rgba(255,255,255,0.025);border-radius:8px;padding:10px 14px">
+          <div style="font-size:10px;color:#3a3860;font-weight:700;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">Miembro desde</div>
+          <div style="font-size:12px;color:#9390a8">${new Date(m.created_at).toLocaleDateString("es-MX",{day:"2-digit",month:"long",year:"numeric"})}</div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="border:1px solid rgba(212,160,23,0.12);padding:24px">
+      <div style="font-size:11px;color:#4a4760;font-weight:600;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px">Saldo disponible</div>
+      <div style="display:flex;align-items:baseline;gap:8px;margin-bottom:${m.txs?.length?"20px":"0"}">
+        <span class="mono" style="font-size:40px;font-weight:700;color:#e8e6f0">$${Number(m.balance).toFixed(2)}</span>
+        <span style="font-size:13px;color:#4a4760">MXN</span>
+      </div>
+      ${m.txs?.length?`
+        <div style="height:1px;background:rgba(255,255,255,0.05);margin-bottom:14px"></div>
+        <div style="font-size:11px;color:#3a3860;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:10px">Últimas transacciones</div>
+        ${m.txs.slice(0,8).map(tx=>`
+          <div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.03)">
+            <div><div style="font-size:12px;color:#8885a0">${esc(tx.note)}</div><div style="font-size:10px;color:#3a3860;margin-top:1px">${new Date(tx.created_at).toLocaleDateString("es-MX")}</div></div>
+            <div style="text-align:right">
+              <div class="mono" style="font-size:13px;font-weight:700;color:${tx.amount>=0?"#4ade80":"#f87171"}">${tx.amount>=0?"+":""}$${Math.abs(tx.amount).toFixed(2)}</div>
+              <div class="mono" style="font-size:10px;color:#3a3860">=$${Number(tx.balance_after).toFixed(2)}</div>
+            </div>
+          </div>`).join("")}`:""}
+    </div>
+  </div>`;
+}
+
+// ── ABOUT ─────────────────────────────────────────────────────────────────────
+function pgAbout(){
+  return`<div style="max-width:780px;display:flex;flex-direction:column;gap:32px">
+    <div style="text-align:center;padding:32px 0 8px">
+      <div class="cond" style="font-size:56px;font-weight:900;margin-bottom:8px"><span style="color:#d4a017">VEGAS</span> <span style="color:#e8e6f0">PIX</span></div>
+      <p style="color:#4a4760;font-size:14px">Análisis deportivo profesional · México</p>
+    </div>
+    <div class="card" style="padding:28px 32px">
+      <div class="cond" style="font-size:18px;font-weight:800;color:#d4a017;margin-bottom:14px">¿QUIÉNES SOMOS?</div>
+      <p style="font-size:14px;color:#8885a0;line-height:1.8">Vegas Pix es un servicio de análisis deportivo profesional con operación en México y mercados internacionales. Nuestro equipo estudia a fondo cada encuentro antes de emitir una selección, combinando estadísticas avanzadas, análisis de tendencias y conocimiento profundo del mercado de apuestas.</p>
+      <p style="font-size:14px;color:#8885a0;line-height:1.8;margin-top:12px">No publicamos corazonadas. Cada pick viene respaldado por horas de investigación con nivel de confianza transparente y análisis detallado.</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+      ${[["🎯","Precisión ante todo","Datos estadísticos reales y tendencias de mercado"],["📋","Historial transparente","Publicamos todos los resultados sin excepción"],["🔒","Plataforma segura","Cuentas protegidas con Supabase + cifrado SHA-256"],["⚡","Picks en tiempo real","Notificaciones inmediatas en Telegram"],["📊","Cuotas americanas","Formato estándar internacional"],["🏆","Autoridad probada","Track record verificable y comunidad activa"]].map(([i,t,d])=>`
+        <div class="card" style="padding:20px 18px">
+          <div style="font-size:28px;margin-bottom:10px">${i}</div>
+          <div style="font-size:14px;font-weight:700;color:#e8e6f0;margin-bottom:6px">${t}</div>
+          <div style="font-size:12px;color:#4a4760;line-height:1.5">${d}</div>
+        </div>`).join("")}
+    </div>
+    <div style="text-align:center;font-size:11px;color:#2a2840;line-height:1.8"><p>Vegas Pix · Operación regulada en México</p><p>Solo para mayores de 18 años. Apostar implica riesgo económico.</p></div>
+  </div>`;
+}
+
+// ── APOSTAR ───────────────────────────────────────────────────────────────────
+function pgApostar(){
+  return`<div style="max-width:780px;display:flex;flex-direction:column;gap:32px">
+    <div>
+      <div style="display:inline-block;padding:4px 14px;border-radius:100px;background:rgba(212,160,23,0.08);border:1px solid rgba(212,160,23,0.2);font-size:11px;font-weight:700;color:#d4a017;letter-spacing:.08em;margin-bottom:16px">SISTEMA DE APUESTAS</div>
+      <div class="cond" style="font-size:36px;font-weight:900;color:#e8e6f0;line-height:1.1;margin-bottom:10px">APUESTA POR<br><span style="color:#d4a017">WHATSAPP</span> O <span style="color:#229ED9">TELEGRAM</span></div>
+      <p style="font-size:14px;color:#6e6b84;line-height:1.7;max-width:600px">Sistema exclusivo de apuestas con nuestros operadores. Deposita fondos, elige tus selecciones y cobra tus ganancias directamente en tu cuenta Vegas Pix.</p>
+    </div>
+    <div class="card" style="padding:28px 32px">
+      <div class="cond" style="font-size:18px;font-weight:800;color:#e8e6f0;margin-bottom:20px">¿CÓMO FUNCIONA?</div>
+      ${[{n:1,t:"Crea tu cuenta y deposita",d:"Regístrate en Vegas Pix y añade fondos mediante PayPal o SPEI. Saldo mínimo: $200 MXN. Se acredita en máximo 2 horas.",i:"💰"},{n:2,t:"Contacta a un operador",d:"Escríbenos por WhatsApp o Telegram con tu nombre de usuario. El operador confirmará tu saldo antes de procesar cualquier apuesta.",i:"💬"},{n:3,t:"Elige tu selección",d:"Indícale al operador el partido, la selección exacta y el monto. El operador te confirmará la cuota americana vigente.",i:"🎯"},{n:4,t:"Confirmación de la apuesta",d:"El operador te enviará un resumen con todos los detalles: partido, selección, cuota, monto y ganancia potencial. Confirmas y queda registrada.",i:"✅"},{n:5,t:"Resultado y cobro",d:"Si tu selección es correcta, tus ganancias se acreditan en tu cuenta en máximo 2 horas. Si pierdes, el monto se descuenta de tu saldo.",i:"🏆"}].map((s,idx,arr)=>`
+        <div style="display:flex;gap:16px;padding:20px 0;${idx<arr.length-1?"border-bottom:1px solid rgba(255,255,255,0.04)":""}">
+          <div style="flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:8px">
+            <div style="width:40px;height:40px;border-radius:50%;background:#d4a017;color:#0a0808;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px">${s.n}</div>
+            ${idx<arr.length-1?`<div style="width:1px;flex:1;background:rgba(212,160,23,0.15);min-height:20px"></div>`:""}
+          </div>
+          <div style="padding-top:8px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px"><span style="font-size:20px">${s.i}</span><div style="font-size:15px;font-weight:700;color:#e8e6f0">${s.t}</div></div>
+            <p style="font-size:13px;color:#6e6b84;line-height:1.7">${s.d}</p>
+          </div>
+        </div>`).join("")}
+    </div>
+    <div class="grid-2">
+      <div class="card" style="padding:24px;border-color:rgba(37,211,102,0.15)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:44px;height:44px;border-radius:50%;background:#25D366;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">💬</div>
+          <div><div style="font-weight:700;color:#e8e6f0;font-size:16px">WhatsApp</div><div style="font-size:11px;color:#4a4760">Atención inmediata</div></div>
+        </div>
+        <p style="font-size:12px;color:#5a5770;line-height:1.6;margin-bottom:16px">Escríbenos con tu usuario de Vegas Pix. Operadores disponibles todos los días.</p>
+        <a href="https://wa.me/521234567890?text=Hola+Vegas+Pix%2C+mi+usuario+es%3A+" target="_blank" style="display:block;text-align:center;padding:11px;border-radius:8px;background:#25D366;color:#fff;font-weight:700;font-size:13px">Apostar por WhatsApp</a>
+      </div>
+      <div class="card" style="padding:24px;border-color:rgba(34,158,217,0.15)">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+          <div style="width:44px;height:44px;border-radius:50%;background:#229ED9;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">✈</div>
+          <div><div style="font-weight:700;color:#e8e6f0;font-size:16px">Telegram</div><div style="font-size:11px;color:#4a4760">Canal + chat privado</div></div>
+        </div>
+        <p style="font-size:12px;color:#5a5770;line-height:1.6;margin-bottom:16px">Canal para picks gratis y chat privado para gestionar tus apuestas.</p>
+        <a href="https://t.me/VegasPix" target="_blank" style="display:block;text-align:center;padding:11px;border-radius:8px;background:#229ED9;color:#fff;font-weight:700;font-size:13px">Apostar por Telegram</a>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px">
+      ${[["⚡","Respuesta rápida","Operadores disponibles de 9am a 12am todos los días"],["🔒","100% seguro","Todas las apuestas quedan registradas en tu cuenta"],["💸","Pago en 2 horas","Ganancias acreditadas en máximo 2 horas tras el partido"],["🚫","Sin comisiones","Lo que ves en la cuota es lo que recibes"]].map(([i,t,d])=>`
+        <div class="card" style="padding:18px">
+          <div style="font-size:26px;margin-bottom:8px">${i}</div>
+          <div style="font-size:13px;font-weight:700;color:#e8e6f0;margin-bottom:5px">${t}</div>
+          <div style="font-size:11px;color:#4a4760;line-height:1.5">${d}</div>
+        </div>`).join("")}
+    </div>
+    <div class="card" style="padding:20px 24px;border-color:rgba(248,113,113,0.1)">
+      <div style="display:flex;gap:12px;align-items:flex-start">
+        <span style="font-size:20px;flex-shrink:0">⚠️</span>
+        <div>
+          <div style="font-size:13px;font-weight:700;color:#f87171;margin-bottom:6px">Aviso de Responsabilidad</div>
+          <p style="font-size:12px;color:#5a5770;line-height:1.6">Las apuestas deportivas implican riesgo de pérdida económica. Solo apuesta lo que estás dispuesto a perder. Servicio exclusivo para mayores de 18 años.</p>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ── ADMIN ─────────────────────────────────────────────────────────────────────
+function pgAdmin(){
+  const tab=S.atab;
+  const statsHtml=[["Total",S.picks.length],["Activos",S.picks.filter(p=>!["won","lost","void","push"].includes(p.status)).length],["Ganados",S.picks.filter(p=>p.status==="won").length],["Perdidos",S.picks.filter(p=>p.status==="lost").length],["Anulados",S.picks.filter(p=>p.status==="void").length],["Usuarios",S.users.length]].map(([l,v])=>`
+    <div class="card" style="padding:12px 14px;text-align:center">
+      <div class="mono" style="font-size:22px;font-weight:700;color:#d4a017">${v}</div>
+      <div style="font-size:10px;color:#3a3860;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px">${l}</div>
+    </div>`).join("");
+  let tc="";
+  if(tab==="picks"){tc=S.picks.length===0?`<div style="text-align:center;padding:60px 0"><p style="color:#3a3860;margin-bottom:16px">No hay picks aún.</p><button onclick="setATab('add')" class="btn-gold" style="padding:10px 24px">Crear primer pick</button></div>`:
+    `<div class="flex-col g10">${S.picks.map(p=>pickCard(p,true)).join("")}</div>`;}
+  else if(tab==="add"){tc=pickForm();}
+  else if(tab==="users"){tc=usersAdmin();}
+  return`<div class="flex-col g24">
+    <div class="flex wrap ai jb g12">
+      <span class="cond" style="font-size:24px;font-weight:800;color:#e8e6f0">⚙ PANEL DE ADMINISTRACIÓN</span>
+      <div style="display:flex;gap:4px;background:#0d0d15;border-radius:10px;padding:4px">
+        ${[["picks",`Picks (${S.picks.length})`],["add",S.editing?"✎ Editar Pick":"＋ Nuevo Pick"],["users",`Usuarios (${S.users.length})`]].map(([v,l])=>`<button onclick="setATab('${v}')" class="tab-btn${tab===v?" on":""}">${l}</button>`).join("")}
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:8px">${statsHtml}</div>
+    ${tc}
+  </div>`;
+}
+
+function pickForm(){
+  const f=S.editing||{sport:"Fútbol",league:"Liga MX",match:"",selection:"",odds:"-110",bookmaker:"Bet365",date:"",time:"",description:"",confidence:3};
+  const isEdit=!!S.editing;
+  return`<div class="card" style="padding:28px;max-width:700px">
+    <div class="cond" style="font-size:20px;font-weight:800;color:#e8e6f0;margin-bottom:24px">${isEdit?"EDITAR PICK":"PUBLICAR NUEVO PICK"}</div>
+    <div class="grid-form">
+      <div><label class="form-lbl">Deporte</label><select id="fs" class="vp-input" onchange="updLeagues()">${Object.keys(ICON).map(s=>`<option${s===f.sport?" selected":""}>${s}</option>`).join("")}</select></div>
+      <div><label class="form-lbl">Liga</label><select id="fl" class="vp-input">${(LEAGUES[f.sport]||[]).map(l=>`<option${l===f.league?" selected":""}>${l}</option>`).join("")}</select></div>
+      <div class="col2"><label class="form-lbl">Partido</label><input id="fm" class="vp-input" placeholder="Ej: Real Madrid vs Barcelona" value="${esc(f.match)}"><span id="em" class="form-err"></span></div>
+      <div class="col2"><label class="form-lbl">Selección / Pick</label><input id="fsel" class="vp-input" placeholder="Ej: Over 2.5 goles, Moneyline Local..." value="${esc(f.selection)}"><span id="esel" class="form-err"></span></div>
+      <div>
+        <label class="form-lbl">Cuota Americana</label>
+        <input id="fo" class="vp-input" placeholder="-110 o +150" value="${esc(String(f.odds||""))}" oninput="updOP(this.value)">
+        <span id="op" class="mono" style="font-size:12px;display:block;margin-top:4px"></span>
+        <span id="eo" class="form-err"></span>
+      </div>
+      <div><label class="form-lbl">Casa de Apuestas</label><select id="fb" class="vp-input">${BOOKS.map(b=>`<option${b===f.bookmaker?" selected":""}>${b}</option>`).join("")}</select></div>
+      <div><label class="form-lbl">Fecha</label><input id="fd" class="vp-input" type="date" value="${esc(f.date||"")}"><span id="ed" class="form-err"></span></div>
+      <div><label class="form-lbl">Hora</label><input id="ft" class="vp-input" type="time" value="${esc(f.time||"")}"><span id="et" class="form-err"></span></div>
+      <div class="col2"><label class="form-lbl">Confianza</label><select id="fc" class="vp-input">${[1,2,3,4,5].map(n=>`<option value="${n}"${n===(f.confidence||3)?" selected":""}>${"★".repeat(n)}${"☆".repeat(5-n)} — ${["Muy Bajo","Bajo","Medio","Alto","Muy Alto"][n-1]}</option>`).join("")}</select></div>
+      <div class="col2"><label class="form-lbl">Análisis</label><textarea id="fdesc" class="vp-input" placeholder="Razonamiento, estadísticas clave, valor de la cuota...">${esc(f.description||"")}</textarea></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button id="submit-btn" onclick="submitForm()" class="btn-gold" style="padding:11px 28px;border-radius:9px">${isEdit?"Actualizar Pick":"Publicar Pick"}</button>
+      <button onclick="setATab('picks')" class="btn-ghost" style="padding:11px 20px;border-radius:9px">Cancelar</button>
+    </div>
+  </div>`;
+}
+
+function usersAdmin(){
+  const q=S.userQ||"";
+  const filt=S.users.filter(u=>u.username.toLowerCase().includes(q.toLowerCase())||u.email.toLowerCase().includes(q.toLowerCase())||u.id.toLowerCase().includes(q.toLowerCase()));
+  return`<div class="flex-col g12">
+    <div class="card" style="padding:16px 20px;border-color:rgba(212,160,23,0.15)">
+      <div style="font-size:12px;font-weight:700;color:#d4a017;margin-bottom:10px;text-transform:uppercase;letter-spacing:.05em">🔍 Buscar Usuario</div>
+      <input class="vp-input" placeholder="Escribe el ID, nombre de usuario o correo..." value="${esc(q)}" oninput="setUQ(this.value)">
+      <p style="font-size:11px;color:#3a3860;margin-top:8px">💡 Pídele al usuario su ID de cuenta. Lo ve en <strong style="color:#5a5770">Mi Cuenta → ID de Usuario</strong>.</p>
+    </div>
+    <div style="font-size:12px;color:#d4a017;font-weight:600;padding:4px 0">${S.users.length} usuario${S.users.length!==1?"s":""} registrado${S.users.length!==1?"s":""} en total</div>
+    ${S.users.length===0?`<div style="text-align:center;padding:40px 0;color:#2e2c3d">No hay usuarios registrados</div>`:
+    filt.length===0&&q?`<div style="text-align:center;padding:32px 0;color:#3a3860;font-size:13px">No se encontró ningún usuario con "${esc(q)}"</div>`:
+    filt.map(u=>`
+      <div class="card" style="padding:16px 20px">
+        <div style="display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px">
+          <div style="display:flex;align-items:center;gap:12px">
+            <div style="width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,#d4a017,#a07010);display:flex;align-items:center;justify-content:center;font-weight:800;color:#0a0808;font-size:16px;flex-shrink:0">${esc(u.username[0].toUpperCase())}</div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:#e8e6f0">${esc(u.username)}</div>
+              <div style="font-size:11px;color:#4a4760">${esc(u.email)}</div>
+              <div class="mono" style="font-size:11px;color:#d4a017;margin-top:3px;background:rgba(212,160,23,0.08);padding:2px 8px;border-radius:4px;display:inline-block">${esc(u.id)}</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px">
+            <div style="text-align:right"><div class="mono" style="font-size:20px;font-weight:700;color:#4ade80">$${Number(u.balance).toFixed(2)}</div><div style="font-size:10px;color:#3a3860">MXN disponible</div></div>
+            <button onclick="togU('${u.id}')" class="btn-ghost" style="padding:6px 14px;font-size:12px">${S.selUser===u.id?"Cerrar":"Gestionar Saldo"}</button>
+          </div>
+        </div>
+        ${S.selUser===u.id?`
+          <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.05)">
+            <div style="font-size:12px;font-weight:700;color:#e8e6f0;margin-bottom:4px">Acreditar / Descontar Saldo</div>
+            <div style="font-size:11px;color:#4a4760;margin-bottom:12px">Monto exacto del depósito confirmado. Negativo para descuentos o retiros.</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px">
+              <div style="flex:0 0 180px">
+                <label style="font-size:10px;color:#3a3860;font-weight:700;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Monto en MXN</label>
+                <input id="aa" class="vp-input" type="text" placeholder="Ej: 500, 350.50, -200" style="font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:700">
+              </div>
+              <div style="flex:1;min-width:180px">
+                <label style="font-size:10px;color:#3a3860;font-weight:700;text-transform:uppercase;letter-spacing:.05em;display:block;margin-bottom:5px">Concepto / Referencia</label>
+                <input id="an" class="vp-input" placeholder="Ej: Depósito PayPal 28/05, SPEI ref. #123">
+              </div>
+              <div style="display:flex;align-items:flex-end">
+                <button onclick="applyBal('${u.id}')" class="btn-gold" style="padding:10px 24px;border-radius:8px;white-space:nowrap">✓ Acreditar</button>
+              </div>
+            </div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:${u.txs?.length?"16px":"0"}">
+              ${[200,300,500,1000].map(n=>`<button onclick="document.getElementById('aa').value='${n}'" style="padding:4px 12px;border-radius:6px;font-size:12px;font-weight:600;border:1px solid rgba(212,160,23,0.2);background:rgba(212,160,23,0.06);color:#d4a017;cursor:pointer">+$${n}</button>`).join("")}
+              <span style="font-size:11px;color:#3a3860;align-self:center;margin-left:4px">Acceso rápido</span>
+            </div>
+            ${u.txs?.length?`<div>
+              <div style="font-size:10px;color:#3a3860;font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px">Historial de movimientos</div>
+              <div style="border:1px solid rgba(255,255,255,0.04);border-radius:8px;overflow:hidden">
+                ${u.txs.slice(0,8).map((tx,i)=>`
+                  <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;${i>0?"border-top:1px solid rgba(255,255,255,0.03)":""}">
+                    <div>
+                      <div style="font-size:12px;color:#8885a0">${esc(tx.note)}</div>
+                      <div style="font-size:10px;color:#3a3860;margin-top:1px">${new Date(tx.created_at).toLocaleDateString("es-MX",{day:"2-digit",month:"short",year:"numeric"})}</div>
+                    </div>
+                    <div style="text-align:right">
+                      <div class="mono" style="font-size:14px;font-weight:700;color:${tx.amount>=0?"#4ade80":"#f87171"}">${tx.amount>=0?"+":""}$${Math.abs(tx.amount).toFixed(2)}</div>
+                      <div class="mono" style="font-size:10px;color:#3a3860">Saldo: $${Number(tx.balance_after).toFixed(2)}</div>
+                    </div>
+                  </div>`).join("")}
+              </div>
+            </div>`:""}
+          </div>`:""}
+      </div>`).join("")}
+  </div>`;
+}
+
+function pgUnauth(){
+  return`<div style="text-align:center;padding:100px 0">
+    <div style="font-size:48px;margin-bottom:16px">🔒</div>
+    <div class="cond" style="font-size:24px;font-weight:800;color:#e8e6f0;margin-bottom:8px">ACCESO RESTRINGIDO</div>
+    <p style="font-size:14px;color:#4a4760;margin-bottom:24px">Se requiere contraseña de administrador.</p>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button onclick="showModal('admin_pw')" class="btn-gold" style="padding:10px 24px;border-radius:9px">Ingresar contraseña</button>
+      <button onclick="go('home')" class="btn-ghost" style="padding:10px 20px;border-radius:9px">Volver al inicio</button>
+    </div>
+  </div>`;
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────────────────
+function showModal(type){
+  const titles={login:"Iniciar Sesión",register:"Crear Cuenta",admin_pw:"Acceso Administrador"};
+  document.getElementById("overlay").innerHTML=`
+    <div class="modal-bg" onclick="if(event.target===this)closeModal()">
+      <div class="modal-box">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+          <span class="cond" style="font-size:22px;font-weight:800;color:#e8e6f0">${titles[type]}</span>
+          <button onclick="closeModal()" style="background:none;border:none;color:#4a4760;font-size:26px;cursor:pointer;line-height:1">×</button>
+        </div>
+        <div id="merr"></div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${type==="register"?`<input class="vp-input" id="mun" placeholder="Nombre de usuario">`:""}
+          ${type==="login"?`<input class="vp-input" id="mun" placeholder="Correo electrónico" onkeydown="if(event.key==='Enter')doModal('${type}')">`:""}
+          ${type==="register"?`<input class="vp-input" id="mem" type="email" placeholder="Correo electrónico">`:""}
+          <input class="vp-input" id="mpw" type="password" placeholder="${type==="admin_pw"?"Contraseña de administrador":"Contraseña (mín. 8 caracteres)"}" onkeydown="if(event.key==='Enter')doModal('${type}')">
+          ${type==="register"?`<input class="vp-input" id="mpw2" type="password" placeholder="Confirmar contraseña">`:""}
+          ${type==="admin_pw"?`<p style="font-size:11px;color:#3a3860;text-align:center">Área restringida. Solo personal autorizado.</p>`:""}
+          <button onclick="doModal('${type}')" id="mbtn" class="btn-gold" style="padding:11px;width:100%">${{login:"Entrar",register:"Crear Cuenta",admin_pw:"Acceder"}[type]}</button>
+          ${type==="login"?`<p style="font-size:12px;color:#4a4760;text-align:center">¿Sin cuenta? <button onclick="showModal('register')" style="background:none;border:none;color:#d4a017;font-size:12px;cursor:pointer">Regístrate</button></p>`:""}
+          ${type==="register"?`<p style="font-size:12px;color:#4a4760;text-align:center">¿Ya tienes cuenta? <button onclick="showModal('login')" style="background:none;border:none;color:#d4a017;font-size:12px;cursor:pointer">Inicia sesión</button></p>`:""}
+        </div>
+      </div>
+    </div>`;
+}
+
+function closeModal(){document.getElementById("overlay").innerHTML="";}
+function merr(msg){const el=document.getElementById("merr");if(el)el.innerHTML=msg?`<div class="err-box">${esc(msg)}</div>`:"";}
+
+async function doModal(type){
+  const btn=document.getElementById("mbtn");
+  if(btn){btn.disabled=true;btn.textContent="Verificando...";}
+  try{
+    if(type==="login"){
+      const email=document.getElementById("mun")?.value?.trim();
+      const pw=document.getElementById("mpw")?.value;
+      if(!email||!pw){merr("Completa todos los campos");return;}
+      const err=await doLogin(email,pw);
+      if(err){merr(err);return;}
+      closeModal();
+    }else if(type==="register"){
+      const un=document.getElementById("mun")?.value?.trim();
+      const em=document.getElementById("mem")?.value?.trim();
+      const pw=document.getElementById("mpw")?.value;
+      const pw2=document.getElementById("mpw2")?.value;
+      if(!un||!em||!pw){merr("Completa todos los campos");return;}
+      if(pw.length<8){merr("Contraseña mínimo 8 caracteres");return;}
+      if(pw!==pw2){merr("Las contraseñas no coinciden");return;}
+      if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(em)){merr("Correo inválido");return;}
+      const err=await doRegister(un,em,pw);
+      if(err){merr(err);return;}
+      closeModal();
+      toast("¡Cuenta creada! Ahora inicia sesión.");
+    }else if(type==="admin_pw"){
+      const pw=document.getElementById("mpw")?.value;
+      const err=await doAdminAuth(pw);
+      if(err){merr(err);}
+    }
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent={login:"Entrar",register:"Crear Cuenta",admin_pw:"Acceder"}[type];}
+  }
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+function setPF(f){S.pf=f;renderMain();}
+function setHS(s){S.hf.sport=s;renderMain();}
+function setHR(r){S.hf.res=r;renderMain();}
+function setUQ(v){S.userQ=v;renderMain();}
+function togU(id){S.selUser=S.selUser===id?null:id;renderMain();}
+function editPick(id){S.editing=S.picks.find(p=>p.id===id);S.atab="add";renderMain();}
+function setATab(t){S.atab=t;if(t!=="add")S.editing=null;renderMain();}
+function updLeagues(){const s=document.getElementById("fs")?.value;const l=document.getElementById("fl");if(l&&s)l.innerHTML=(LEAGUES[s]||[]).map(x=>`<option>${x}</option>`).join("");}
+function updOP(v){const el=document.getElementById("op");if(!el)return;const n=parseInt(v);if(!isNaN(n)){el.textContent="→ "+fmtO(n);el.style.color=n>=0?"#4ade80":"#d4a017";}else el.textContent="";}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+async function init(){
+  setLoad(true);
+  await loadPicks();
+  const{data:{session}}=await sb.auth.getSession();
+  if(session){
+    S.authUser=session.user;
+    await loadProfile(session.user.id);
+  }
+  setLoad(false);
+  renderAll();
+
+  sb.auth.onAuthStateChange(async(event,session)=>{
+    if(event==="SIGNED_IN"&&session){
+      S.authUser=session.user;
+      await loadProfile(session.user.id);
+      toast(`Bienvenido, ${S.profile?.username||"usuario"}`);
+      renderAll();
+    }else if(event==="SIGNED_OUT"){
+      S.authUser=null;S.profile=null;S.isAdmin=false;
+      go("home");
+      toast("Sesión cerrada","info");
+    }
+  });
+
+  setInterval(()=>{if(!(S.page==="admin"&&S.atab==="add"))loadPicks().then(()=>renderMain());},60000);
+}
+
+init();
+</script>
+</body>
+</html>
